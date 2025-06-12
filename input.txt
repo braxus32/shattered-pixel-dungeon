@@ -1,0 +1,3 @@
+N
+S
+ZOOM_IN
