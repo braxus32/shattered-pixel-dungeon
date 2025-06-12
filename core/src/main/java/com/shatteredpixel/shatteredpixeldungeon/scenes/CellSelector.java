@@ -43,6 +43,11 @@ import com.watabou.utils.Point;
 import com.watabou.utils.PointF;
 import com.watabou.utils.Signal;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.List;
+
 public class CellSelector extends ScrollArea {
 
 	public Listener listener = null;
@@ -59,6 +64,10 @@ public class CellSelector extends ScrollArea {
 		
 		mouseZoom = camera.zoom;
 		KeyEvent.addKeyListener( keyListener );
+		// Load script actions if scriptMode is enabled
+		if (scriptMode) {
+			loadScript("actions.txt");
+		}
 	}
 	
 	private float mouseZoom;
@@ -356,6 +365,22 @@ public class CellSelector extends ScrollArea {
 	public void update() {
 		super.update();
 
+		if (scriptMode && scriptIndex < scriptActions.size()) {
+			// Simulate next action from script
+			String actionStr = scriptActions.get(scriptIndex++);
+			GameAction action = SPDAction.valueOf(actionStr);
+			// Simulate a key press for the action (using first key from bindings)
+			int keyCode = KeyBindings.getFirstKeyForAction(action, false);
+			if (keyCode != 0) {
+				KeyEvent event = new KeyEvent(keyCode, true);
+				keyListener.onSignal(event);
+				// Also simulate release
+				event = new KeyEvent(keyCode, false);
+				keyListener.onSignal(event);
+			}
+			return; // Skip normal input processing
+		}
+
 		GameAction newLeftStick = actionFromStick(ControllerHandler.leftStickPosition.x,
 				ControllerHandler.leftStickPosition.y);
 
@@ -521,5 +546,21 @@ public class CellSelector extends ScrollArea {
 		public void onRightClick( Integer cell ){} //do nothing by default
 
 		public abstract String prompt();
+	}
+
+	// Script mode additions
+	private static boolean scriptMode = true; // Set to true to enable
+	private static List<String> scriptActions = new ArrayList<>();
+	private static int scriptIndex = 0;
+
+	private void loadScript(String filePath) {
+		try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+			String line;
+			while ((line = br.readLine()) != null) {
+				scriptActions.add(line.trim());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 }
