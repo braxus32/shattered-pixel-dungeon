@@ -367,8 +367,8 @@ public class CellSelector extends ScrollArea {
 
 		if (scriptMode && scriptIndex < scriptActions.size()) {
 			// Simulate next action from script
-			String actionStr = scriptActions.get(scriptIndex++);
-			GameAction action = SPDAction.valueOf(actionStr);
+String actionStr = scriptActions.get(scriptIndex++);
+GameAction action = getActionFromString(actionStr);
 			// Simulate a key press for the action (using first key from bindings)
 			int keyCode = KeyBindings.getFirstKeyForAction(action, false);
 			if (keyCode != 0) {
@@ -553,7 +553,21 @@ public class CellSelector extends ScrollArea {
 	private static List<String> scriptActions = new ArrayList<>();
 	private static int scriptIndex = 0;
 
-	private void loadScript(String filePath) {
+private void loadScript(String filePath) {
+}
+
+private GameAction getActionFromString(String str) {
+    switch (str) {
+        case "N": return SPDAction.N;
+        case "S": return SPDAction.S;
+        case "E": return SPDAction.E;
+        case "W": return SPDAction.W;
+        case "WAIT": return SPDAction.WAIT;
+        case "INVENTORY": return SPDAction.INVENTORY;
+        // Add more as needed
+        default: return SPDAction.NONE;
+    }
+}
 		try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
 			String line;
 			while ((line = br.readLine()) != null) {
